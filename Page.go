@@ -33,6 +33,8 @@ var EXPORT_IMPORT_DEFAULT = regexp.MustCompile(`export\s+{\s*.*default.+\s*}\s*f
 
 var IMPORT_STAR = regexp.MustCompile(`import\s+\*\s+as\s+([A-Za-z](?:[A-Za-z0-9_])*)\s+from\s+'(\..+)'`)
 
+var DECONSTRUCTED_REQUIRED_IMPORT = regexp.MustCompile(`const\s*{\s*((?:[A-Za-z](?:[A-Za-z0-9_])*|\s|,|:)*)}\s*=\s*require\('(\..+)'\)`)
+
 var FROM = regexp.MustCompile(`from\s*'(\..+)'`)
 
 func (p *Page) IsFileADep(filePath string) bool {
@@ -116,7 +118,38 @@ func (p *Page) FileDepTree() {
 			Module:          match[1],
 			IsDefaultImport: true,
 		})
+	}
 
+	// DECONSTRUCTED_REQUIRED_IMPORT
+	matches = DECONSTRUCTED_REQUIRED_IMPORT.FindAllStringSubmatch(string(file), -1)
+	for _, match := range matches {
+		modulesWithoutComma := strings.ReplaceAll(match[1], ",", "")
+
+		separatedModules := strings.Split(modulesWithoutComma, "\n")
+
+		for _, separatedModuleImport := range separatedModules {
+			if strings.Contains(separatedModuleImport, ":") {
+
+				separatedModuleImportByColon := strings.Split(separatedModuleImport, ":")[0]
+
+				importedModules = append(importedModules, Import{
+					Path:            CleanFilePath(fileDirPath, match[2]),
+					Module:          separatedModuleImportByColon,
+					IsDefaultImport: false,
+				})
+
+				continue
+			}
+			separatedModuleImportCleaned := strings.ReplaceAll(separatedModuleImport, " ", "")
+			if separatedModuleImportCleaned != "" {
+				importedModules = append(importedModules, Import{
+					Path:            CleanFilePath(fileDirPath, match[2]),
+					Module:          separatedModuleImportCleaned,
+					IsDefaultImport: false,
+				})
+			}
+
+		}
 	}
 
 	fileModuleTracker := NewSet()
@@ -310,6 +343,38 @@ func GetDeps(importedModule *Import) []Import {
 			IsDefaultImport: true,
 		})
 
+	}
+
+	// DECONSTRUCTED_REQUIRED_IMPORT
+	matches = DECONSTRUCTED_REQUIRED_IMPORT.FindAllStringSubmatch(string(file), -1)
+	for _, match := range matches {
+		modulesWithoutComma := strings.ReplaceAll(match[1], ",", "")
+
+		separatedModules := strings.Split(modulesWithoutComma, "\n")
+
+		for _, separatedModuleImport := range separatedModules {
+			if strings.Contains(separatedModuleImport, ":") {
+
+				separatedModuleImportByColon := strings.Split(separatedModuleImport, ":")[0]
+
+				importedModules = append(importedModules, Import{
+					Path:            CleanFilePath(correctPath, match[2]),
+					Module:          separatedModuleImportByColon,
+					IsDefaultImport: false,
+				})
+
+				continue
+			}
+			separatedModuleImportCleaned := strings.ReplaceAll(separatedModuleImport, " ", "")
+			if separatedModuleImportCleaned != "" {
+				importedModules = append(importedModules, Import{
+					Path:            CleanFilePath(correctPath, match[2]),
+					Module:          separatedModuleImportCleaned,
+					IsDefaultImport: false,
+				})
+			}
+
+		}
 	}
 
 	return importedModules
