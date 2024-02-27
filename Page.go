@@ -293,7 +293,8 @@ func GetDeps(importedModule *Import) []Import {
 		importedModule.SetExtension("tsx")
 		correctPath = GetFileDirPath(importedModule.Path)
 	} else {
-		log.Panic(fmt.Errorf("cannot find file %s", importedModule.Path))
+		//		log.Panic(fmt.Errorf("cannot find file %s", importedModule.Path))
+		return importedModules
 	}
 
 	// DECONSTRUCTED_IMPORT
