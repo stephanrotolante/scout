@@ -23,7 +23,9 @@ default require
 import type
 */
 
-var DYNAMIC_IMPORT = regexp.MustCompile(`import\((?:.|\s)*?'(\..+)'\)`)
+var COMMENT = regexp.MustCompile(`/\*[\s\S]*?\*/|//.*`)
+
+var DYNAMIC_IMPORT = regexp.MustCompile(`import\((?:.|\s)*?'(\..+)'`)
 
 var DECONSTRUCTED_IMPORT = regexp.MustCompile(`import\s*{\s*(?:[A-Za-z](?:[A-Za-z0-9_])*|\s+|,)+\s*}\s*from\s*'\..+'`)
 
@@ -62,8 +64,10 @@ func (p *Page) FileDepTree() {
 
 	var importedModules []Import
 
+	fileWithoutComments := COMMENT.ReplaceAllString(string(file), "")
+
 	// DECONSTRUCTED_IMPORT
-	matches := DECONSTRUCTED_IMPORT.FindAllStringSubmatch(string(file), -1)
+	matches := DECONSTRUCTED_IMPORT.FindAllStringSubmatch(fileWithoutComments, -1)
 	for _, match := range matches {
 
 		stringWithoutNewLine := strings.Replace(match[0], "\n", " ", -1)
@@ -97,7 +101,7 @@ func (p *Page) FileDepTree() {
 	}
 
 	// DEFAULT_IMPORT
-	matches = DEFAULT_IMPORT.FindAllStringSubmatch(string(file), -1)
+	matches = DEFAULT_IMPORT.FindAllStringSubmatch(fileWithoutComments, -1)
 
 	for _, match := range matches {
 
@@ -111,7 +115,7 @@ func (p *Page) FileDepTree() {
 	}
 
 	// IMPORT_STAR
-	matches = IMPORT_STAR.FindAllStringSubmatch(string(file), -1)
+	matches = IMPORT_STAR.FindAllStringSubmatch(fileWithoutComments, -1)
 
 	/// caputed text, import name, from
 	for _, match := range matches {
@@ -123,7 +127,7 @@ func (p *Page) FileDepTree() {
 	}
 
 	// DECONSTRUCTED_REQUIRED_IMPORT
-	matches = DECONSTRUCTED_REQUIRED_IMPORT.FindAllStringSubmatch(string(file), -1)
+	matches = DECONSTRUCTED_REQUIRED_IMPORT.FindAllStringSubmatch(fileWithoutComments, -1)
 	for _, match := range matches {
 		modulesWithoutComma := strings.ReplaceAll(match[1], ",", "")
 
@@ -155,7 +159,7 @@ func (p *Page) FileDepTree() {
 	}
 
 	//DYNAMIC_IMPORT
-	matches = DYNAMIC_IMPORT.FindAllStringSubmatch(string(file), -1)
+	matches = DYNAMIC_IMPORT.FindAllStringSubmatch(fileWithoutComments, -1)
 
 	for _, match := range matches {
 		importedModules = append(importedModules, Import{
@@ -220,10 +224,12 @@ func GetDeps(importedModule *Import) []Import {
 			log.Panic(fmt.Errorf("cannot find file %s", importedModule.Path))
 		}
 
+		fileWithoutComments := COMMENT.ReplaceAllString(string(file), "")
+
 		// If modules is default import making assumption to include all files
 		if !importedModule.IsDefaultImport {
 
-			matches := EXPORT_IMPORT.FindAllStringSubmatch(string(file), -1)
+			matches := EXPORT_IMPORT.FindAllStringSubmatch(fileWithoutComments, -1)
 
 			for _, match := range matches {
 
@@ -263,7 +269,7 @@ func GetDeps(importedModule *Import) []Import {
 			return importedModules
 		}
 
-		matches := EXPORT_IMPORT_DEFAULT.FindAllStringSubmatch(string(file), -1)
+		matches := EXPORT_IMPORT_DEFAULT.FindAllStringSubmatch(fileWithoutComments, -1)
 
 		for _, match := range matches {
 
@@ -297,8 +303,10 @@ func GetDeps(importedModule *Import) []Import {
 		return importedModules
 	}
 
+	fileWithoutComments := COMMENT.ReplaceAllString(string(file), "")
+
 	// DECONSTRUCTED_IMPORT
-	matches := DECONSTRUCTED_IMPORT.FindAllStringSubmatch(string(file), -1)
+	matches := DECONSTRUCTED_IMPORT.FindAllStringSubmatch(fileWithoutComments, -1)
 	for _, match := range matches {
 
 		stringWithoutNewLine := strings.Replace(match[0], "\n", " ", -1)
@@ -333,7 +341,7 @@ func GetDeps(importedModule *Import) []Import {
 	}
 
 	// DEFAULT_IMPORT
-	matches = DEFAULT_IMPORT.FindAllStringSubmatch(string(file), -1)
+	matches = DEFAULT_IMPORT.FindAllStringSubmatch(fileWithoutComments, -1)
 
 	for _, match := range matches {
 
@@ -347,7 +355,7 @@ func GetDeps(importedModule *Import) []Import {
 	}
 
 	// IMPORT_STAR
-	matches = IMPORT_STAR.FindAllStringSubmatch(string(file), -1)
+	matches = IMPORT_STAR.FindAllStringSubmatch(fileWithoutComments, -1)
 
 	/// caputed text, import name, from
 	for _, match := range matches {
@@ -360,7 +368,7 @@ func GetDeps(importedModule *Import) []Import {
 	}
 
 	// DECONSTRUCTED_REQUIRED_IMPORT
-	matches = DECONSTRUCTED_REQUIRED_IMPORT.FindAllStringSubmatch(string(file), -1)
+	matches = DECONSTRUCTED_REQUIRED_IMPORT.FindAllStringSubmatch(fileWithoutComments, -1)
 	for _, match := range matches {
 		modulesWithoutComma := strings.ReplaceAll(match[1], ",", "")
 
@@ -392,7 +400,7 @@ func GetDeps(importedModule *Import) []Import {
 	}
 
 	//DYNAMIC_IMPORT
-	matches = DYNAMIC_IMPORT.FindAllStringSubmatch(string(file), -1)
+	matches = DYNAMIC_IMPORT.FindAllStringSubmatch(fileWithoutComments, -1)
 
 	for _, match := range matches {
 		importedModules = append(importedModules, Import{
