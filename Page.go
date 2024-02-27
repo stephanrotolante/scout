@@ -18,10 +18,12 @@ type Page struct {
 /*
 Unsupported:
 
-require
+default require
 
 import type
 */
+
+var DYNAMIC_IMPORT = regexp.MustCompile(`import\((?:.|\s)*?'(\..+)'\)`)
 
 var DECONSTRUCTED_IMPORT = regexp.MustCompile(`import\s*{\s*(?:[A-Za-z](?:[A-Za-z0-9_])*|\s+|,)+\s*}\s*from\s*'\..+'`)
 
@@ -150,6 +152,17 @@ func (p *Page) FileDepTree() {
 			}
 
 		}
+	}
+
+	//DYNAMIC_IMPORT
+	matches = DYNAMIC_IMPORT.FindAllStringSubmatch(string(file), -1)
+
+	for _, match := range matches {
+		importedModules = append(importedModules, Import{
+			Path:            CleanFilePath(fileDirPath, match[1]),
+			Module:          match[1],
+			IsDefaultImport: true,
+		})
 	}
 
 	fileModuleTracker := NewSet()
@@ -375,6 +388,17 @@ func GetDeps(importedModule *Import) []Import {
 			}
 
 		}
+	}
+
+	//DYNAMIC_IMPORT
+	matches = DYNAMIC_IMPORT.FindAllStringSubmatch(string(file), -1)
+
+	for _, match := range matches {
+		importedModules = append(importedModules, Import{
+			Path:            CleanFilePath(correctPath, match[1]),
+			Module:          match[1],
+			IsDefaultImport: true,
+		})
 	}
 
 	return importedModules
