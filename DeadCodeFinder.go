@@ -59,7 +59,7 @@ func DeadCodeFinder(projectPath string) {
 	var fileCount = 0
 	sort.Strings(fileList)
 	for _, file := range fileList {
-		if !pageSet.Contains(file) && !strings.Contains(file, ".test.") && !strings.Contains(file, ".md") && !strings.Contains(file, ".gitkeep") {
+		if !pageSet.Contains(file) && !strings.Contains(file, ".test.") && !strings.Contains(file, ".md") && !strings.Contains(file, ".gitkeep") && !strings.Contains(file, ".stories.") {
 			fileCount += 1
 
 			fmt.Println(strings.ReplaceAll(file, projectPath, ""))
