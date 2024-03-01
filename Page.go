@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -65,6 +66,13 @@ func (p *Page) FileDepTree() {
 	var importedModules []Import
 
 	fileWithoutComments := COMMENT.ReplaceAllString(string(file), "")
+
+	if len(Alias) > 0 && len(AliasPath) > 0 {
+
+		relativePath, _ := filepath.Rel(GetFileDirPath(p.PagePath), AliasPath)
+
+		fileWithoutComments = strings.ReplaceAll(string(fileWithoutComments), Alias, relativePath+string(os.PathSeparator))
+	}
 
 	// DECONSTRUCTED_IMPORT
 	matches := DECONSTRUCTED_IMPORT.FindAllStringSubmatch(fileWithoutComments, -1)
@@ -226,6 +234,13 @@ func GetDeps(importedModule *Import) []Import {
 
 		fileWithoutComments := COMMENT.ReplaceAllString(string(file), "")
 
+		if len(Alias) > 0 && len(AliasPath) > 0 {
+
+			relativePath, _ := filepath.Rel(GetFileDirPath(importedModule.Path), AliasPath)
+
+			fileWithoutComments = strings.ReplaceAll(string(fileWithoutComments), Alias, relativePath+string(os.PathSeparator))
+		}
+
 		// If modules is default import making assumption to include all files
 		if !importedModule.IsDefaultImport {
 
@@ -304,6 +319,13 @@ func GetDeps(importedModule *Import) []Import {
 	}
 
 	fileWithoutComments := COMMENT.ReplaceAllString(string(file), "")
+
+	if len(Alias) > 0 && len(AliasPath) > 0 {
+
+		relativePath, _ := filepath.Rel(GetFileDirPath(importedModule.Path), AliasPath)
+
+		fileWithoutComments = strings.ReplaceAll(string(fileWithoutComments), Alias, relativePath+string(os.PathSeparator))
+	}
 
 	// DECONSTRUCTED_IMPORT
 	matches := DECONSTRUCTED_IMPORT.FindAllStringSubmatch(fileWithoutComments, -1)

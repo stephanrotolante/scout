@@ -41,18 +41,32 @@ func ReadDirectory(dirPath string) []Page {
 
 const MAX_CONCURRENCY = 8
 
-func main() {
-	location := flag.String("p", "", "Location to next project")
+var (
+	Location  = ""
+	Task      = ""
+	Alias     = ""
+	AliasPath = ""
+)
 
-	task := flag.String("t", "dependency-check", "Task to perfrom\nAvailable options are deadcode-check or dependency-check")
+func init() {
+	flag.StringVar(&Location, "p", "", "Location to next project")
+
+	flag.StringVar(&Task, "t", "dependency-check", "Task to perfrom\nAvailable options are deadcode-check or dependency-check")
+
+	flag.StringVar(&AliasPath, "ap", "", "Alias path")
+	flag.StringVar(&Alias, "a", "", "Alias pattern")
 
 	flag.Parse()
 
-	switch *task {
+}
+
+func main() {
+
+	switch Task {
 	case "deadcode-check":
-		DeadCodeFinder(*location)
+		DeadCodeFinder(Location)
 	case "dependency-check":
-		DependencyCheck(*location)
+		DependencyCheck(Location)
 
 	}
 
